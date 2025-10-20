@@ -1,0 +1,20 @@
+#!/bin/bash
+
+echo "Forcing C++14 for iOS build"
+
+# Check if the ios directory exists, if it doesn't, exit the script
+if [ -d "ios" ]; then
+  echo "iOS directory found. Modifying Podfile..."
+  # Append C++14 flag to Podfile
+  echo "
+    post_install do |installer|
+      installer.pods_project.targets.each do |target|
+        target.build_configurations.each do |config|
+          config.build_settings['OTHER_CPLUSPLUSFLAGS'] = '-std=c++14'
+        end
+      end
+    end
+  " >> ios/Podfile
+else
+  echo "iOS directory not found. Skipping Podfile modification."
+fi

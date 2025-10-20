@@ -1,0 +1,63 @@
+//
+//  ExpoSQLite-Bridging-Header.h
+//  Bridge between ExpoSQLite custom function names and standard SQLite3 functions
+//
+
+#ifndef ExpoSQLite_Bridging_Header_h
+#define ExpoSQLite_Bridging_Header_h
+
+#import <sqlite3.h>
+
+// Map all exsqlite3_ functions to their standard sqlite3_ equivalents
+#define exsqlite3_open sqlite3_open
+#define exsqlite3_exec sqlite3_exec
+#define exsqlite3_prepare_v2 sqlite3_prepare_v2
+#define exsqlite3_step sqlite3_step
+#define exsqlite3_finalize sqlite3_finalize
+#define exsqlite3_close sqlite3_close
+#define exsqlite3_bind_text sqlite3_bind_text
+#define exsqlite3_bind_int sqlite3_bind_int
+#define exsqlite3_bind_int64 sqlite3_bind_int64
+#define exsqlite3_bind_double sqlite3_bind_double
+#define exsqlite3_bind_blob sqlite3_bind_blob
+#define exsqlite3_bind_null sqlite3_bind_null
+#define exsqlite3_column_count sqlite3_column_count
+#define exsqlite3_column_name sqlite3_column_name
+#define exsqlite3_column_type sqlite3_column_type
+#define exsqlite3_column_int64 sqlite3_column_int64
+#define exsqlite3_column_double sqlite3_column_double
+#define exsqlite3_column_text sqlite3_column_text
+#define exsqlite3_column_blob sqlite3_column_blob
+#define exsqlite3_column_bytes sqlite3_column_bytes
+#define exsqlite3_reset sqlite3_reset
+#define exsqlite3_clear_bindings sqlite3_clear_bindings
+#define exsqlite3_bind_parameter_index sqlite3_bind_parameter_index
+#define exsqlite3_last_insert_rowid sqlite3_last_insert_rowid
+#define exsqlite3_changes sqlite3_changes
+#define exsqlite3_errcode sqlite3_errcode
+#define exsqlite3_errmsg sqlite3_errmsg
+#define exsqlite3_get_autocommit sqlite3_get_autocommit
+#define exsqlite3_backup_init sqlite3_backup_init
+#define exsqlite3_backup_step sqlite3_backup_step
+#define exsqlite3_backup_finish sqlite3_backup_finish
+#define exsqlite3_serialize sqlite3_serialize
+#define exsqlite3_deserialize sqlite3_deserialize
+#define exsqlite3_malloc64 sqlite3_malloc64
+#define exsqlite3_free sqlite3_free
+#define exsqlite3_db_filename sqlite3_db_filename
+#define exsqlite3_update_hook sqlite3_update_hook
+#define exsqlite3_next_stmt sqlite3_next_stmt
+
+// SQLite session extension functions
+#define exsqlite3session_create sqlite3session_create
+#define exsqlite3session_attach sqlite3session_attach
+#define exsqlite3session_enable sqlite3session_enable
+#define exsqlite3session_delete sqlite3session_delete
+#define exsqlite3session_changeset sqlite3session_changeset
+#define exsqlite3changeset_apply sqlite3changeset_apply
+#define exsqlite3changeset_invert sqlite3changeset_invert
+
+// SQLite constants
+#define SQLITE_CHANGESET_REPLACE SQLITE_CHANGESET_REPLACE
+
+#endif /* ExpoSQLite_Bridging_Header_h */

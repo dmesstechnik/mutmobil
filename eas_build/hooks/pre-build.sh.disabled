@@ -1,0 +1,17 @@
+#!/bin/bash
+set -e
+
+echo "🛠️ [EAS HOOK] Prebuild hook started"
+
+# Prebuild iOS folder
+npx expo prebuild --platform ios --non-interactive
+
+# Patch Podfile for RCT-Folly and C++14
+if [ -f "scripts/patchRNN.js" ]; then
+  echo "🔧 Running patchRNN.js"
+  node scripts/patchRNN.js
+else
+  echo "⚠️ patchRNN.js not found"
+fi
+
+echo "✅ Prebuild hook completed"
