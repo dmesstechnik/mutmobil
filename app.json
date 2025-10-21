@@ -2,6 +2,7 @@
   "expo": {
     "name": "MT Mobil",
     "slug": "MesstechnikMobile",
+    "scheme": "mtmobil",
     "version": "1.1.16",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

@@ -1,39 +1,19 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import '../global.css';
+import { Provider } from 'react-redux';
+import { Provider as PaperProvider } from 'react-native-paper';
+import { store } from './store';
+import { Stack } from 'expo-router';
 
-import { HapticTab } from '../components/haptic-tab';
-import { IconSymbol } from '../components/ui/icon-symbol';
-import { Colors } from '../constants/theme';
-import { useColorScheme } from '../hooks/use-color-scheme';
-
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
+export default function RootLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color, focused }) => (
-            <IconSymbol size={28} name={focused ? 'house.fill' : 'house'} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color, focused }) => (
-            <IconSymbol size={28} name={focused ? 'paperplane.fill' : 'paperplane'} color={color} />
-          ),
-        }}
-      />
-    </Tabs>
+    <Provider store={store}>
+      <PaperProvider>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="Menu" />
+          <Stack.Screen name="(tabs)" />
+        </Stack>
+      </PaperProvider>
+    </Provider>
   );
 }

@@ -33,7 +33,7 @@ const getDatabase = () => {
   return db;
 };
 
-const LoginScreen = ({ navigation, route }) => {
+const LoginScreen = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
   const [email, setEmail] = useState('');
@@ -173,7 +173,6 @@ const LoginScreen = ({ navigation, route }) => {
   useEffect(() => {
     createUserTable();
     getFirstUser();
-    getAllUsers();
   }, []);
 
   useEffect(() => {
@@ -205,8 +204,7 @@ const LoginScreen = ({ navigation, route }) => {
     const online = await checkInternet();
 
     if (online) {
-      const success = await logIn();
-      if (success) saveUserToLocalDB(authData.userId, email, password, authData.token);
+      await logIn();
     } else {
       console.log('No internet connection. Using local DB.');
       getAllUsers();
@@ -248,10 +246,10 @@ const LoginScreen = ({ navigation, route }) => {
       console.log("Logged in with auth token:" + token);
 
       if (isAutoLogin) {
-        router.push(`/Menu?userId=${user.id}&token=${token}&autoLogin=true`);
+        router.replace(`/Menu?userId=${user.id}&token=${token}&autoLogin=true`);
         setIsAutoLogin(false);
       } else {
-        router.push(`/Menu?userId=${user.id}&token=${token}`);
+        router.replace(`/Menu?userId=${user.id}&token=${token}`);
       }
 
       return true;
@@ -270,7 +268,7 @@ const LoginScreen = ({ navigation, route }) => {
       userId: id ? id.toString() : '',
     }));
 
-    navigation.navigate('MainMenu', { userId: id ? id.toString() : '', token: token || '' });
+    router.replace(`/Menu?userId=${id}&token=${token}`);
   };
 
   // ----------------- UI -----------------
