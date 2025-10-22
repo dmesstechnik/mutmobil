@@ -2,6 +2,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useEffect, useState } from "react";
 import {
   Dimensions,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,12 +14,14 @@ import { TextInput } from "react-native-gesture-handler";
 import {
   CheckIcon,
   ClockIcon,
+  ExclamationCircleIcon,
   GlobeEuropeAfricaIcon,
   MapPinIcon,
   MoonIcon,
   SunIcon,
   ViewColumnsIcon,
 } from "react-native-heroicons/outline";
+import { CheckCircleIcon } from "react-native-heroicons/solid";
 import { Modal, Portal } from "react-native-paper";
 import { useSelector } from "react-redux";
 import MesstechnikAPI from "../API/MesstechnikAPI";
@@ -75,7 +78,10 @@ const StemplApp = () => {
     endBreak2: false,
   });
 
-  const [awayDaysActive, setAwayDaysActive] = useState(false);
+  const [awayDaysActive, setAwayDaysActive] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [showStatus, setShowStatus] = useState(false);
   const [serverRequest, setServerRequest] = useState(false);
   const navigation = useNavigation();
   const userId = useSelector((state) => state.auth.userId);
@@ -125,9 +131,18 @@ const StemplApp = () => {
 
 
   useEffect(() => {
-    getAppConfigFromServer();
-    createAppConfigTable();
-    getAppConfig();
+    // Add delay to ensure native modules are fully initialized
+    const initDb = setTimeout(() => {
+      try {
+        getAppConfigFromServer();
+        createAppConfigTable();
+        getAppConfig();
+      } catch (error) {
+        console.error('❌ Failed to initialize database in Stempel:', error);
+      }
+    }, 2500); // Wait 2.5 seconds to ensure app is marked as loaded
+
+    return () => clearTimeout(initDb);
   }, []);
 
   const handlePress = async (key) => {
@@ -155,35 +170,40 @@ const StemplApp = () => {
         return;
       }
 
-      setTimes((prevTimes) => {
-        const updatedTimes = { ...prevTimes, [key]: currentTime };
-        const nextButtonVisibility = { ...buttonVisibility };
-        if (key === "clockIn") nextButtonVisibility.startBreakfast = true;
-        if (key === "startBreakfast") nextButtonVisibility.endBreakfast = true;
-        if (key === "endBreakfast")
-          (nextButtonVisibility.clockOut = true), setServerRequest(true);
-        if (key === "clockOut") nextButtonVisibility.startBreak1 = true;
-        if (key === "startBreak1") nextButtonVisibility.endBreak1 = true;
-        if (key === "endBreak1") nextButtonVisibility.startBreak2 = true;
-        if (key === "startBreak2") nextButtonVisibility.endBreak2 = true;
+      const updatedTimes = { ...times, [key]: currentTime };
+      const nextButtonVisibility = { ...buttonVisibility };
+      if (key === "clockIn") nextButtonVisibility.startBreakfast = true;
+      if (key === "startBreakfast") nextButtonVisibility.endBreakfast = true;
+      if (key === "endBreakfast")
+        (nextButtonVisibility.clockOut = true), setServerRequest(true);
+      if (key === "clockOut") nextButtonVisibility.startBreak1 = true;
+      if (key === "startBreak1") nextButtonVisibility.endBreak1 = true;
+      if (key === "endBreak1") nextButtonVisibility.startBreak2 = true;
+      if (key === "startBreak2") nextButtonVisibility.endBreak2 = true;
 
+      // Upload to server first
+      const success = await uploadData(key);
+
+      // Only save locally if server request succeeded
+      if (success) {
+        setTimes(updatedTimes);
         setButtonVisibility(nextButtonVisibility);
         saveClockData(updatedTimes, today, userId);
-        return updatedTimes;
-      });
+        setStatusMessage("Daten bei Me\u00DFtechnik abgespeichert");
+      } else {
+        setStatusMessage("Leider nicht geschafft");
+      }
 
-      setUploadKey(key);
+      setShowStatus(true);
+      setTimeout(() => setShowStatus(false), 3000);
     } catch (error) {
       console.error("Error saving time:", error);
+      setStatusMessage("Leider nicht geschafft");
+      setShowStatus(true);
+      setTimeout(() => setShowStatus(false), 3000);
     }
   };
 
-  useEffect(() => {
-    if (uploadKey) {
-      uploadData(uploadKey);
-      setUploadKey(null);
-    }
-  }, [times, uploadKey]);
 
   const saveMorningReason = async (morningReason) => {
     await uploadData("clockIn");
@@ -243,25 +263,37 @@ const saveDestinationData = async () => {
     let boxSelected = true;
     let timeOk = true;
 
+    try {
+      let stempelAPI = new StempelAPI(authToken);
+      let response;
 
-    let stempelAPI = new StempelAPI(authToken);
+      if (type === "clockIn") {
+        response = await stempelAPI.clockIn();
+      } else if (type === "startBreakfast") {
+        response = await stempelAPI.startMealBreak();
+      } else if (type === "endBreakfast") {
+        response = await stempelAPI.endMealBreak();
+      } else if (type === "clockOut") {
+        response = await stempelAPI.clockOut();
+      } else if (type === "startBreak1") {
+        response = await stempelAPI.startFirstBreak();
+      } else if (type === "endBreak1") {
+        response = await stempelAPI.endFirstBreak();
+      } else if (type === "startBreak2") {
+        response = await stempelAPI.startSecondBreak();
+      } else if (type === "endBreak2") {
+        response = await stempelAPI.endSecondBreak();
+      }
 
-    if (type === "clockIn") {
-      stempelAPI.clockIn();
-    } else if (type === "startBreakfast") {
-      stempelAPI.startMealBreak();
-    } else if (type === "endBreakfast") {
-      stempelAPI.endMealBreak();
-    } else if (type === "clockOut") {
-      stempelAPI.clockOut();
-    } else if (type === "startBreak1") {
-      stempelAPI.startFirstBreak();
-    } else if (type === "endBreak1") {
-      stempelAPI.endFirstBreak();
-    } else if (type === "startBreak2") {
-      stempelAPI.startSecondBreak();
-    } else if (type === "endBreak2") {
-      stempelAPI.endSecondBreak();
+      // Check if response status is 200
+      if (response && response.status === 200) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      console.error("Upload failed:", error);
+      return false;
     }
   };
 
@@ -304,6 +336,16 @@ const saveDestinationData = async () => {
     }
   };
 
+  const requestNewData = async () => {
+    // Empty function for now - will be implemented later
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await requestNewData();
+    setRefreshing(false);
+  };
+
   return (
     <ScrollView
       contentContainerStyle={{
@@ -312,7 +354,29 @@ const saveDestinationData = async () => {
         paddingTop: 1,
         backgroundColor: "#FFFFFF",
       }}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          title="Kommuniziere mit Me\u00DFtechnik"
+          tintColor="#3B82F6"
+          titleColor="#3B82F6"
+        />
+      }
     >
+      {showStatus && (
+        <View className={`flex-row items-center justify-center p-4 mb-4 rounded-lg ${statusMessage.includes('abgespeichert') ? 'bg-green-100' : 'bg-red-100'}`}>
+          {statusMessage.includes('abgespeichert') ? (
+            <CheckCircleIcon size={24} color="#10B981" />
+          ) : (
+            <ExclamationCircleIcon size={24} color="#EF4444" />
+          )}
+          <Text className={`ml-2 font-semibold ${statusMessage.includes('abgespeichert') ? 'text-green-700' : 'text-red-700'}`}>
+            {statusMessage}
+          </Text>
+        </View>
+      )}
+
       <View className="flex flex-row items-center self-center">
         <ClockIcon size={50} color="#3B82F6" />
         <Text className="text-4xl font-bold text-gray-800 mb-5 text-center mt-8 ml-4">{`Stempeln`}</Text>
@@ -384,22 +448,22 @@ const saveDestinationData = async () => {
       {/* Tabs */}
       <View className="flex w-full flex-row">
         <TouchableOpacity
-          className={`w-1/3 p-2 rounded-lg items-center flex-row ${
+          className={`flex-1 p-2 rounded-lg items-center ${
             awayDaysActive ? "border-b-blue-500 border-b-2" : ""
           }`}
           onPress={() => setAwayDaysActive((prev) => !prev)}
         >
           <GlobeEuropeAfricaIcon size={35} color="black" />
-          <Text className={`font-semibold text-lg pl-2`}>Auswärtstage</Text>
+          <Text className="font-semibold text-base text-center mt-1">Ausw{'\u00E4'}rtstage</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          className={`w-1/3 p-2 pl-7 items-center flex-row ${
+          className={`flex-1 p-2 items-center ${
             !awayDaysActive ? "border-b-blue-500 border-b-2" : ""
           }`}
           onPress={() => setAwayDaysActive((prev) => !prev)}
         >
           <ClockIcon size={35} color="black" />
-          <Text className="font-semibold text-lg pl-2">Unterbrechungen</Text>
+          <Text className="font-semibold text-base text-center mt-1">Unterbrechungen</Text>
         </TouchableOpacity>
       </View>
 
@@ -448,6 +512,7 @@ const saveDestinationData = async () => {
           <View className="flex flex-row w-full items-center m-4">
             <MapPinIcon size={30} color="black" />
             <TextInput
+            placeholder="Ort"
               onChangeText={setPlace}
               className="border-b-2 p-2 m-3 w-10/12 font-bold"
               value={place}

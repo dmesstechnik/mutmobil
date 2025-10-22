@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Button,
   Dimensions,
   Modal,
@@ -9,8 +10,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Agenda, LocaleConfig } from "react-native-calendars";
-import { ScrollView } from "react-native-gesture-handler";
+import { Calendar, LocaleConfig } from "react-native-calendars";
+import { ScrollView } from 'react-native-gesture-handler';
 import {
   ChatBubbleLeftRightIcon,
   ClockIcon,
@@ -36,6 +37,7 @@ import {
   getTicketStatusTitles,
 } from "../functions/TextFunctions";
 
+import Comment from "../components/menus/Comment";
 import Notification from "../components/Notification";
 
 import FotosScreen from "./PhotoScreen";
@@ -46,7 +48,7 @@ LocaleConfig.locales["de"] = {
   monthNames: [
     "Januar",
     "Februar",
-    "MÃ¤rz",
+    "M\u00E4rz",
     "April",
     "Mai",
     "Juni",
@@ -60,7 +62,7 @@ LocaleConfig.locales["de"] = {
   monthNamesShort: [
     "Jan.",
     "Feb.",
-    "MÃ¤rz",
+    "M\u00E4rz",
     "Apr.",
     "Mai",
     "Juni",
@@ -94,9 +96,12 @@ function CalendarScreen({ navigation }) {
   const [items, setItems] = useState({});
   const [orderItems, setOrderItems] = useState({});
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState("null");
   const [openedOrder, setOpenedOrder] = useState({});
+  const loadedDatesRef = useRef(new Set());
+  const scrollViewRef = useRef(null);
 
   const userId = useSelector((state) => state.auth.userId);
   const token = useSelector((state) => state.auth.token);
@@ -110,23 +115,34 @@ function CalendarScreen({ navigation }) {
   const [devices, setDevices] = useState([]);
   const [comments, setComments] = useState([{object:{}, apartement:{}, device:{}}]);
 useEffect(() => {
-  console.log("ðŸ“¦ openedOrder:", openedOrder);
+  console.log("Ã°Å¸â€œÂ¦ openedOrder:", openedOrder);
 }, [openedOrder]);
 
   const loadItems = useCallback(
     async (day) => {
+      console.log('ðŸ”„ loadItems called for day:', day);
       try {
-        setItems({});
-        const newItems = {};
-
-        // Fetch the auth token
         if (!token) {
           console.error("Authentication token not found");
           return;
         }
-        const apiMesstechnik = new MesstechnikAPI(token);
 
         const selectedDate = timeToString(day.timestamp);
+        console.log('ðŸ“… Selected date:', selectedDate);
+
+        // Check if this date has already been loaded
+        if (loadedDatesRef.current.has(selectedDate)) {
+          console.log('âœ… Date already loaded, skipping:', selectedDate);
+          return;
+        }
+
+        console.log('ðŸ†• Loading new date:', selectedDate);
+        setIsLoadingData(true);
+        // Mark this date as being loaded
+        loadedDatesRef.current.add(selectedDate);
+
+        const apiMesstechnik = new MesstechnikAPI(token);
+        const newItems = {};
         const selectedDateObj = new Date(day.timestamp);
 
         await apiMesstechnik.getInstallerCalendarInfoToDate(
@@ -178,20 +194,29 @@ useEffect(() => {
               });
             }
 
-            setItems((prevItems) => ({
-              ...prevItems,
-              ...newItems,
-            }));
+            console.log('ðŸ“¦ Setting items for date:', selectedDate, 'New items count:', Object.keys(newItems).length);
+            setItems((prevItems) => {
+              console.log('ðŸ“¦ Previous items count:', Object.keys(prevItems).length);
+              const updated = {
+                ...prevItems,
+                ...newItems,
+              };
+              console.log('ðŸ“¦ Updated items count:', Object.keys(updated).length);
+              return updated;
+            });
+            setIsLoadingData(false);
           },
           (error) => {
             console.error("Error loading items: ", error);
+            setIsLoadingData(false);
           }
         );
       } catch (error) {
         console.error("Error loading items: ", error);
+        setIsLoadingData(false);
       }
     },
-    [isLoaded]
+    [token, userId]
   );
 
   const showNotification = (icon, text, color) => {
@@ -204,6 +229,9 @@ useEffect(() => {
 
   useEffect(() => {
     setIsLoaded(false);
+    // Load today's data on mount
+    const today = new Date();
+    loadItems({ timestamp: today.getTime(), dateString: timeToString(today.getTime()) });
   }, []);
 
   useEffect(() => {
@@ -221,12 +249,17 @@ useEffect(() => {
   }, [selectedItem]);
 
   useEffect(() => {
+    // Only run when modal is visible and we have a valid selectedItem
+    if (!modalVisible || !selectedItem || !selectedItem.apartmentOrder) {
+      return;
+    }
+
     const fetchDevices = async () => {
       let messtechnikApi = new MesstechnikAPI(token);
       let apartment = await messtechnikApi.getApartmentByOrderId(
         selectedItem.apartmentOrder
     );
-      if(selectedTab == "GerÃ¤te"){
+      if(selectedTab == "Ger\u00E4te"){
          
             if (apartment) {
                 let devices = await messtechnikApi.getDevicesByApartmentId(
@@ -235,7 +268,7 @@ useEffect(() => {
                 if (!devices) {
                 showNotification(
                     <InformationCircleIcon size={15} color={"red"} />,
-                    "Fehler beim Laden der GerÃ¤te",
+                    "Fehler beim Laden der Ger\u00E4te",
                     "red"
                 );
                 }
@@ -283,9 +316,9 @@ useEffect(() => {
     };
 
     fetchDevices();
-  }, [selectedTab]);
+  }, [selectedTab, modalVisible]);
 
-  const renderItem = (item) => {
+  const renderItem = useCallback((item) => {
     if (!item) {
       console.error("renderItem received null or undefined item");
       return null;
@@ -453,7 +486,7 @@ useEffect(() => {
         </Card>
       </TouchableOpacity>
     );
-  };
+  }, []);
 
   const renderDay = (day, item) => {
     return (
@@ -461,7 +494,7 @@ useEffect(() => {
         style={{
           alignItems: "center",
           justifyContent: "center",
-          width: 36, // Adjusted width
+          width: 36, // Adjusted widthW
           height: 36, // Adjusted height
           backgroundColor: "white",
           borderRadius: 18, // Adjusted border radius
@@ -476,17 +509,132 @@ useEffect(() => {
     );
   };
 
+  const [selectedDate, setSelectedDate] = useState(timeToString(new Date().getTime()));
+  const [calendarExpanded, setCalendarExpanded] = useState(false);
+
+  const handleDayPress = useCallback((day) => {
+    setSelectedDate(day.dateString);
+    loadItems(day);
+    setCalendarExpanded(false);
+  }, [loadItems]);
+
+  const handleJetztPress = () => {
+    const now = new Date();
+    const currentTime = now.toTimeString().slice(0, 8); // HH:MM:SS format
+    const todayString = timeToString(now.getTime());
+
+    if (selectedDate !== todayString) {
+      // If not on today's date, switch to today
+      setSelectedDate(todayString);
+      if (!loadedDatesRef.current.has(todayString)) {
+        loadItems({ timestamp: now.getTime(), dateString: todayString });
+      }
+      // Wait for items to load before scrolling
+      setTimeout(() => {
+        scrollToCurrentTime(todayString, currentTime);
+      }, 500);
+    } else {
+      scrollToCurrentTime(todayString, currentTime);
+    }
+  };
+
+  const scrollToCurrentTime = (todayString, currentTime) => {
+    const todayItems = items[todayString] || [];
+
+    // Find the item that matches current time
+    let currentItemIndex = todayItems.findIndex((item) => {
+      if (!item.timeFrom || !item.timeTo || item.name === "Keine Termine") return false;
+      return currentTime >= item.timeFrom && currentTime <= item.timeTo;
+    });
+
+    // If no match, find the next upcoming appointment
+    if (currentItemIndex === -1) {
+      currentItemIndex = todayItems.findIndex((item) => {
+        if (!item.timeFrom || item.name === "Keine Termine") return false;
+        return currentTime < item.timeFrom;
+      });
+    }
+
+    // Scroll to the item
+    if (scrollViewRef.current && todayItems.length > 0 && currentItemIndex >= 0) {
+      // Use approximate card height (including margins)
+      scrollViewRef.current.scrollTo({
+        y: currentItemIndex * 250, // Adjusted for card height + margins
+        animated: true,
+      });
+    }
+  };
+
+  const isTodayDataAvailable = () => {
+    const todayString = timeToString(new Date().getTime());
+    return items[todayString] && items[todayString].length > 0;
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: "#F3F4F6" }}>
-      <Agenda
-        items={items}
-        loadItemsForMonth={loadItems}
-        refreshControl={null}
-        showClosingKnob={true}
-        refreshing={false}
-        renderItem={renderItem}
-        markedDates={orderItems}
-      />
+      <View style={{ backgroundColor: 'white' }}>
+        {!calendarExpanded ? (
+          <View style={{ padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#333', flex: 1 }}>
+              {new Date(selectedDate).toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })}
+            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <TouchableOpacity
+                onPress={handleJetztPress}
+                disabled={!isTodayDataAvailable()}
+                style={{
+                  paddingVertical: 8,
+                  paddingHorizontal: 16,
+                  borderRadius: 8,
+                  borderWidth: 1,
+                  borderColor: isTodayDataAvailable() ? '#3B82F6' : '#D1D5DB',
+                }}
+              >
+                <Text style={{ color: isTodayDataAvailable() ? '#3B82F6' : '#9CA3AF', fontWeight: 'bold' }}>
+                  Jetzt
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setCalendarExpanded(!calendarExpanded)}
+                style={{ padding: 4 }}
+              >
+                <Icon name="calendar" size={24} color="#3B82F6" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : (
+          <Calendar
+            markedDates={{
+              [selectedDate]: { selected: true, selectedColor: '#3B82F6' }
+            }}
+            onDayPress={handleDayPress}
+            hideExtraDays={true}
+          />
+        )}
+      </View>
+      <TouchableOpacity
+        activeOpacity={1}
+        style={{ flex: 1 }}
+        onPress={() => calendarExpanded && setCalendarExpanded(false)}
+      >
+        {isLoadingData ? (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 }}>
+            <ActivityIndicator size="large" color="#3B82F6" />
+            <Text style={{ marginTop: 16, color: '#3B82F6', fontSize: 16 }}>
+              Kommuniziere mit Me{'\u00DF'}technik
+            </Text>
+          </View>
+        ) : (
+          <ScrollView ref={scrollViewRef} style={{ flex: 1, padding: 10 }}>
+            {items[selectedDate]?.map((item, index) => renderItem(item, index))}
+            {(!items[selectedDate] || items[selectedDate].length === 0) && (
+              <Text style={{ textAlign: 'center', padding: 20, color: '#999' }}>
+                Keine Termine f{'\u00FC'}r diesen Tag
+              </Text>
+            )}
+          </ScrollView>
+        )}
+      </TouchableOpacity>
       <StatusBar barStyle="dark-content" />
 
       <Modal
@@ -515,12 +663,12 @@ useEffect(() => {
                             </Text>
                         </TouchableOpacity>
                         <TouchableOpacity
-                            className={`flex-1 items-center p-2 mx-1 bg-gray-100 rounded-lg ${selectedTab === "GerÃ¤te" ? "border-b-2 border-blue-500" : ""}`}
-                            onPress={() => setSelectedTab("GerÃ¤te")}
+                            className={`flex-1 items-center p-2 mx-1 bg-gray-100 rounded-lg ${selectedTab === "Ger\u00E4te" ? "border-b-2 border-blue-500" : ""}`}
+                            onPress={() => setSelectedTab("Ger\u00E4te")}
                         >
-                            <DevicePhoneMobileIcon size={22} color={selectedTab === "GerÃ¤te" ? "#3B82F6" : "#000"} />
-                            <Text className={`text-xs text-center ml-2 ${selectedTab === "GerÃ¤te" ? "text-blue-500" : "text-gray-800"}`}>
-                                GerÃ¤te
+                            <DevicePhoneMobileIcon size={22} color={selectedTab === "Ger\u00E4te" ? "#3B82F6" : "#000"} />
+                            <Text className={`text-xs text-center ml-2 ${selectedTab === "Ger\u00E4te" ? "text-blue-500" : "text-gray-800"}`}>
+                                Ger{'\u00E4'}te
                             </Text>
                         </TouchableOpacity>
                         <TouchableOpacity
@@ -542,7 +690,7 @@ useEffect(() => {
                             </Text>
                         </TouchableOpacity>
                     </View>
-                    <View className="items-center mb-2" style={{ flex: 1 }}>
+                    <View className="mb-2 flex-1 w-full">
                         {notificationVisible && (
                             <Notification
                                 icon={<InformationCircleIcon size={15} color={notificationData.color} />}
@@ -551,17 +699,17 @@ useEffect(() => {
                                 iconColor={notificationData.color}
                             />
                         )}
-                      
+
                         {selectedTab === "Kunde" && (
-                            <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+                            <ScrollView contentContainerStyle={{ flexGrow: 1 }} style={{ width: '100%' }}>
                                 <Text className="flex p-2 text-lg text-blue-300">Kunde</Text>
-                                
-                                
-                    
+
+                                {/* <GoogleMapsNavigation street={openedOrder?.objectNumber?.street} location={openedOrder?.objectNumber?.location} /> */}
+
                                 <ModalListItem icon={<HomeIcon size={22} color="#7393B3" />} text={`Wohnung: ${selectedItem.apartment}`} />
-                                <ModalListItem icon={<HomeIcon size={22} color="#7393B3" />} text={`TÃ¼r: ${selectedItem.door}`} />
+                                <ModalListItem icon={<HomeIcon size={22} color="#7393B3" />} text={`T${'\u00FC'}r: ${selectedItem.door}`} />
                                 <ModalListItem icon={<CubeIcon size={22} color="#7393B3" />} text={`Objektnummer: ${selectedItem.objectNumber}`} />
-                                <ModalListItem icon={<HomeIcon size={22} color="#7393B3" />} text={`TÃ¼r: ${openedOrder?.objectNumber?.street + " " + openedOrder?.objectNumber?.location}`} /*info={"Navi Ã¶ffnen"}*/ infoIcon={<MapPinIcon color={"skyblue"} size={15}  />} />
+                                <ModalListItem icon={<HomeIcon size={22} color="#7393B3" />} text={`TÃƒÂ¼r: ${openedOrder?.objectNumber?.street + " " + openedOrder?.objectNumber?.location}`} /*info={"Navi ÃƒÂ¶ffnen"}*/ infoIcon={<MapPinIcon color={"skyblue"} size={15}  />} />
                                 <ModalListItem icon={<MapPinIcon size={22} color="#7393B3" />} text={`Stockwerk: ${selectedItem.location}`} />
                                 <Text className="flex p-2 text-lg text-blue-300">Auftrag</Text>
                                 <View className="pr-4">
@@ -571,9 +719,9 @@ useEffect(() => {
                                         const updateOrderStatus = async () => {
                                             let response = await messtechnikApi.updateOrderStatus(selectedItem.orderId, id);
                                             if (response) {
-                                                showNotification(<InformationCircleIcon size={15} color={"green"} />, "Status erfolgreich geÃ¤ndert", "green");
+                                                showNotification(<InformationCircleIcon size={15} color={"green"} />, "Status erfolgreich ge\u00E4ndert", "green");
                                             } else {
-                                                showNotification(<InformationCircleIcon size={15} color={"red"} />, "Fehler beim Ã„ndern des Status", "red");
+                                                showNotification(<InformationCircleIcon size={15} color={"red"} />, "Fehler beim \u00C4ndern des Status", "red");
                                             }
                                         };
                                         updateOrderStatus();
@@ -583,20 +731,26 @@ useEffect(() => {
                                 <ModalListItem icon={<ClockIcon size={22} color="#7393B3" />} text={`Zeit: ${selectedItem.timeFrom} - ${selectedItem.timeTo}`} />
                             </ScrollView>
                         )}
-                        {selectedTab === "GerÃ¤te" && (
+                        {selectedTab === "Ger\u00E4te" && (
                             <ScrollView contentContainerStyle={{ flexGrow: 1, minWidth:"100%" }} style={{ width: "100%", minWidth: "100%" }}>
-                                <Text className="flex p-2 text-lg text-blue-300">GerÃ¤te</Text>
-                                {devices.map((device, index) => (
-                                    <View key={index} className="flex w-full self-start min-w-full">
-                                        <ModalListItem icon={<DevicePhoneMobileIcon size={22} color="#7393B3" />} text={`ID: ${device.deviceId}`} />
-                                        <ModalListItem text={`Seriennummer: ${device.meterNumber}`} />
-                                        <ModalListItem text={`GerÃ¤tenummer: ${device.deviceNumber}`} />
-                                        <ModalListItem text={`Raum: ${device.room}`} />
-                                        <ModalListItem text={`Hersteller: ${device.devicesInfo.manufacturer}`} />
-                                        <ModalListItem text={`Typ: ${device.devicesInfo.type}`} />
-                                        <ModalListItem text={`Modulnummer: ${device?.deviceModules?.moduleNumber}`} />
-                                    </View>
-                                ))}
+                                <Text className="flex p-2 text-lg text-blue-300">Ger{'\u00E4'}te</Text>
+                                {Array.isArray(devices) && devices.length > 0 ? (
+                                    devices.map((device, index) => (
+                                        device ? (
+                                            <View key={index} className="flex w-full self-start min-w-full">
+                                                <ModalListItem icon={<DevicePhoneMobileIcon size={22} color="#7393B3" />} text={`ID: ${device?.deviceId || 'N/A'}`} />
+                                                <ModalListItem text={`Seriennummer: ${device?.meterNumber || 'N/A'}`} />
+                                                <ModalListItem text={`Ger\u00E4tenummer: ${device?.deviceNumber || 'N/A'}`} />
+                                                <ModalListItem text={`Raum: ${device?.room || 'N/A'}`} />
+                                                <ModalListItem text={`Hersteller: ${device?.devicesInfo?.manufacturer || 'N/A'}`} />
+                                                <ModalListItem text={`Typ: ${device?.devicesInfo?.type || 'N/A'}`} />
+                                                <ModalListItem text={`Modulnummer: ${device?.deviceModules?.moduleNumber || 'N/A'}`} />
+                                            </View>
+                                        ) : null
+                                    ))
+                                ) : (
+                                    <Text className="text-center text-gray-500 mt-6">Keine Ger{'\u00E4'}te gefunden</Text>
+                                )}
                             </ScrollView>
                         )}
                       {selectedTab === "Kommentare" && (
@@ -607,8 +761,10 @@ useEffect(() => {
                 <Text className={`text-xs text-center ml-2 ${selectedTab === "Object" ? "text-blue-500" : "text-gray-800"}`}>Anlage</Text>
             </TouchableOpacity>
             <View className="min-w-full">
-                {comments.object && comments?.object.map((comment, index) => (
-                    <Comment key={index} title={comment.title} poster={comment.poster} date={comment.postDate} content={comment.content}/>
+                {Array.isArray(comments?.object) && comments.object.map((comment, index) => (
+                    comment ? (
+                        <Comment key={index} title={comment?.title || ''} poster={comment?.poster || ''} date={comment?.postDate || ''} content={comment?.content || ''}/>
+                    ) : null
                 ))}
                 <TouchableOpacity className="flex items-center p-2 mx-1 bg-white rounded-lg mt-2 mb-2">
                     <Text className="text-md text-blue-500">Erstellen +</Text>
@@ -619,8 +775,10 @@ useEffect(() => {
                 <Text className={`text-xs text-center ml-2 ${selectedTab === "Object" ? "text-blue-500" : "text-gray-800"}`}>Wohnung</Text>
             </TouchableOpacity>
             <View className="min-w-full">
-                {comments.apartment && comments?.apartment.map((comment, index) => (
-                    <Comment key={index} title={comment.title} poster={comment.poster} date={comment.postDate} content={comment.content}/>
+                {Array.isArray(comments?.apartment) && comments.apartment.map((comment, index) => (
+                    comment ? (
+                        <Comment key={index} title={comment?.title || ''} poster={comment?.poster || ''} date={comment?.postDate || ''} content={comment?.content || ''}/>
+                    ) : null
                 ))}
                 <TouchableOpacity className="flex items-center p-2 mx-1 bg-white rounded-lg mt-2 mb-2">
                     <Text className="text-md text-blue-500">Erstellen +</Text>
@@ -628,13 +786,15 @@ useEffect(() => {
             </View>
             <TouchableOpacity className={`flex-1 items-center p-2 mx-1 bg-gray-100 rounded-lg ${selectedTab === "Object" ? "border-b-2 border-blue-500" : ""}`} onPress={() => setSelectedTab("Object")}>
                 <EnvelopeIcon size={22} color={selectedTab === "Object" ? "#3B82F6" : "#000"} />
-                <Text className={`text-xs text-center ml-2 ${selectedTab === "Object" ? "text-blue-500" : "text-gray-800"}`}>GerÃ¤te</Text>
+                <Text className={`text-xs text-center ml-2 ${selectedTab === "Object" ? "text-blue-500" : "text-gray-800"}`}>Ger{'\u00E4'}te</Text>
             </TouchableOpacity>
             <View className="min-w-full">
-                {comments.device && comments?.device.map((comment, index) => (
-                    <Comment key={index} title={comment.title} poster={comment.poster} date={comment.postDate} content={comment.content}/>
+                {Array.isArray(comments?.device) && comments.device.map((comment, index) => (
+                    comment ? (
+                        <Comment key={index} title={comment?.title || ''} poster={comment?.poster || ''} date={comment?.postDate || ''} content={comment?.content || ''}/>
+                    ) : null
                 ))}
-           
+
             </View>
         </View>
     </ScrollView>
@@ -648,7 +808,7 @@ useEffect(() => {
 
                     </View>
                     <TouchableOpacity className="items-center p-2 mx-1 bg-gray-100 rounded-lg" onPress={() => setModalVisible(false)}>
-                        <Text className="text-gray-800 text-sm font-bold text-center">SchlieÃŸen</Text>
+                        <Text className="text-gray-800 text-sm font-bold text-center">Schlie{'\u00DF'}en</Text>
                     </TouchableOpacity>
                 </>
             )}

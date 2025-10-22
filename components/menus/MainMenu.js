@@ -3,13 +3,13 @@ import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Animated, Dimensions, Linking, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Image } from 'react-native-elements';
-import { BellIcon, CalendarIcon, CheckIcon, ClockIcon, DocumentTextIcon, EnvelopeIcon, ExclamationTriangleIcon, FlagIcon, InformationCircleIcon, UserIcon } from 'react-native-heroicons/outline';
+import { BellIcon, CalendarIcon, CheckIcon, ClockIcon, DocumentTextIcon, EnvelopeIcon, ExclamationTriangleIcon, InformationCircleIcon, MapPinIcon, UserIcon } from 'react-native-heroicons/outline';
 import { CheckCircleIcon } from 'react-native-heroicons/solid';
 import { useSelector } from 'react-redux';
 import MesstechnikAPI from '../../API/MesstechnikAPI';
 import { MIN_HOUR, SERVER } from '../../config/config';
 import { checkInternetConnection } from '../../functions/InternetFunctions';
-import GoogleMapsNavigation from '../../functions/NavigationFunction';
+import GoogleMapsNavigation from '../../functions/NavigationFuntion';
 import Notification from '../Notification';
 import HeaderNotificationItem from './HeaderNotificationItem';
 
@@ -226,74 +226,75 @@ const MainMenu = ({ route }) => {
           ))}
         </View>
       )}
+<View className="flex flex-row flex-wrap justify-center">
+  <TouchableOpacity
+    className="bg-white rounded-xl m-2 justify-center items-center "
+    style={{ width: (screenWidth / 3) - 30, height: (screenWidth / 3) - 24 }}
+    onPress={() => handleNavigation('Stempl')}
+  >
+    <ClockIcon size={40} color="#4A4A4A" />
+    <Text className="mt-2 text-sm text-gray-800 text-center" numberOfLines={1}>Stempeln</Text>
+  </TouchableOpacity>
 
-      <View className="flex flex-row flex-wrap justify-center">
-        <TouchableOpacity
-          className="bg-white rounded-xl m-2 justify-center items-center "
-          style={{ width: (screenWidth / 3) - 30, height: (screenWidth / 3) - 24 }}
-          onPress={() => handleNavigation('Stempl')}
-        >
-          <ClockIcon size={40} color="#4A4A4A" />
-          <Text className="mt-2 text-sm text-gray-800 text-center" numberOfLines={1} adjustsFontSizeToFit>Stempeln</Text>
-        </TouchableOpacity>
+  <TouchableOpacity
+    className="bg-white rounded-xl m-2 justify-center items-center "
+    style={{ width: (screenWidth / 3) - 30, height: (screenWidth / 3) - 24 }}
+    onPress={() => handleNavigation('Kalendar')}
+  >
+    <CalendarIcon size={40} color="#4A4A4A" />
+    <Text className="mt-2 text-sm text-gray-800 text-center" numberOfLines={1}>Verplannung</Text>
+  </TouchableOpacity>
 
-        <TouchableOpacity
-          className="bg-white rounded-xl m-2 justify-center items-center "
-          style={{ width: (screenWidth / 3) - 30, height: (screenWidth / 3) - 24 }}
-          onPress={() => handleNavigation('Kalendar')}
-        >
-          <CalendarIcon size={40} color="#4A4A4A" />
-          <Text className="mt-2 text-sm text-gray-800 text-center" numberOfLines={1} adjustsFontSizeToFit>Verplannung</Text>
-        </TouchableOpacity>
+<TouchableOpacity
+  className="bg-white rounded-xl m-2 justify-center items-center"
+  style={{ width: (screenWidth / 3) - 30, height: (screenWidth / 3) - 24 }}
+  onPress={() => handleNavigation('Today')}
+>
+  <MapPinIcon size={40} color="#4A4A4A" />
+  <Text className="mt-2 text-sm text-gray-800 text-center" numberOfLines={1}>Navi</Text>
+</TouchableOpacity>
 
-        <TouchableOpacity
-          className="bg-white rounded-xl m-2 justify-center items-center "
-          style={{ width: (screenWidth / 3) - 30, height: (screenWidth / 3) - 24 }}
-          onPress={() => handleNavigation('Today')}
-        >
-          <FlagIcon size={40} color="#4A4A4A" />
-          <Text className="mt-2 text-sm text-gray-800 text-center" numberOfLines={1} adjustsFontSizeToFit>Heute</Text>
-        </TouchableOpacity>
-      </View>
+</View>
 
-      {/* Additional Menu Items */}
-      <View className="flex flex-row flex-wrap justify-center">
-        <TouchableOpacity
-          className="bg-white rounded-xl m-2 justify-center items-center"
-          style={{ width: (screenWidth / 3) - 30, height: (screenWidth / 3) - 24 }}
-          onPress={() => handleNavigation('Kontakte')}
-        >
-          <UserIcon size={40} color="#4A4A4A" />
-          <Text className="mt-2 text-sm text-gray-800 text-center" numberOfLines={1} adjustsFontSizeToFit>Kontakte</Text>
-        </TouchableOpacity>
+{/* Additional Menu Items */}
+<View className="flex flex-row flex-wrap justify-center">
+  <TouchableOpacity
+    className="bg-white rounded-xl m-2 justify-center items-center"
+    style={{ width: (screenWidth / 3) - 30, height: (screenWidth / 3) - 24 }}
+    onPress={() => handleNavigation('Kontakte')}
+  >
+    <UserIcon size={40} color="#4A4A4A" />
+    <Text className="mt-2 text-sm text-gray-800 text-center" numberOfLines={1}>Kontakte</Text>
+  </TouchableOpacity>
 
-        <TouchableOpacity
-          className="bg-white rounded-xl m-2 justify-center items-center "
-          style={{ width: (screenWidth / 3) - 30, height: (screenWidth / 3) - 24 }}
-          onPress={() => handleNavigation('ErrorMessageKategorije')}
-        >
-          <EnvelopeIcon size={40} color="#4A4A4A" />
-          <Text className="mt-2 text-sm text-gray-800 text-center" numberOfLines={1} adjustsFontSizeToFit>Verbesserungen</Text>
-        </TouchableOpacity>
+  <TouchableOpacity
+    className="bg-white rounded-xl m-2 justify-center items-center "
+    style={{ width: (screenWidth / 3) - 30, height: (screenWidth / 3) - 24 }}
+    onPress={() => handleNavigation('ErrorMessageKategorije')}
+  >
+    <EnvelopeIcon size={40} color="#4A4A4A" />
+    <Text className="mt-2 text-sm text-gray-800 text-center" numberOfLines={1}>Verbesserungen</Text>
+  </TouchableOpacity>
 
-        <TouchableOpacity
-          className="bg-white rounded-xl m-2 justify-center items-center "
-          style={{ width: (screenWidth / 3) - 30, height: (screenWidth / 3) - 24 }}
-          onPress={() => handleNavigation('Vacation')}
-        >
-          <CalendarIcon size={40} color="#4A4A4A" />
-          <Text className="mt-2 text-sm text-gray-800 text-center" numberOfLines={1} adjustsFontSizeToFit>Antrage</Text>
-        </TouchableOpacity>
+  <TouchableOpacity
+    className="bg-white rounded-xl m-2 justify-center items-center "
+    style={{ width: (screenWidth / 3) - 30, height: (screenWidth / 3) - 24 }}
+    onPress={() => handleNavigation('Vacation')}
+    disabled={true}
+  >
+    <CalendarIcon size={40} color="#4A4A4A" />
+    <Text className="mt-2 text-sm text-gray-400 text-center" numberOfLines={1}>Anträge</Text>
+  </TouchableOpacity>
 
-        <TouchableOpacity
-          className="bg-white rounded-xl m-2 justify-center items-center "
-          style={{ width: (screenWidth / 3) - 30, height: (screenWidth / 3) - 24 }}
-          onPress={() => handleNavigation('StempelHistory')}
-        >
-          <DocumentTextIcon size={40} color="#4A4A4A" />
-          <Text className="mt-2 text-sm text-gray-800 text-center" numberOfLines={1} adjustsFontSizeToFit>Stempelzeiten</Text>
-        </TouchableOpacity>
-      </View>
+  <TouchableOpacity
+    className="bg-white rounded-xl m-2 justify-center items-center "
+    style={{ width: (screenWidth / 3) - 30, height: (screenWidth / 3) - 24 }}
+    onPress={() => handleNavigation('StempelHistory')}
+  >
+    <DocumentTextIcon size={40} color="#4A4A4A" />
+    <Text className="mt-2 text-sm text-gray-800 text-center" numberOfLines={1}>Stempelzeiten</Text>
+  </TouchableOpacity>
+</View>
     </ScrollView>
   );
 };

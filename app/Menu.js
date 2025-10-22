@@ -1,7 +1,6 @@
-import { Provider } from 'react-redux';
-import { Provider as PaperProvider } from 'react-native-paper';
-import { store } from './store';
 import { createDrawerNavigator } from '@react-navigation/drawer';
+import { Provider as PaperProvider } from 'react-native-paper';
+import { Provider } from 'react-redux';
 import LeftDrawer from '../components/menus/LeftDrawer';
 import MainMenu from '../components/menus/MainMenu';
 import CalendarScreen from './Calendar';
@@ -9,8 +8,11 @@ import Contacts from './Contacts';
 import ErrorMessageApp from './ErrorMessage';
 import ErrorMessageKategorije from './ErrorMessageKategorije';
 import LoginScreen from './login';
+import ProfileScreen from './Profil'; // or './Profile' if that's the filename
 import QRCodeScreen from './QRCode';
 import StemplApp from './Stempel';
+import StempelHistory from './StempelHistory'; // Add this if you have it
+import { store } from './store';
 import Today from './Today';
 import Vacation from './Vacation';
 
@@ -30,9 +32,11 @@ function MenuNavigator({ route, navigation }) {
       <Drawer.Screen name="Kontakte" component={Contacts} options={{title:'Kontakte'}}/>
       <Drawer.Screen name="ErrorMessageKategorije" component={ErrorMessageKategorije} options={{title:'MT Apps'}}/>
       <Drawer.Screen name="InhouseApps" component={ErrorMessageApp} options={{title:'MT Apps'}}/>
-      <Drawer.Screen name="Vacation" component={Vacation} options={{title:' Vacation'}}/>
-      <Drawer.Screen name="Login" component={LoginScreen} options={{title:' Login'}}/>
+      <Drawer.Screen name="Vacation" component={Vacation} options={{title:'Vacation'}}/>
+      <Drawer.Screen name="Login" component={LoginScreen} options={{title:'Login'}}/>
       <Drawer.Screen name="Today" component={Today} options={{title:'Heute'}}/>
+      <Drawer.Screen name="Profile" component={ProfileScreen} options={{title:'Profil'}}/>
+      <Drawer.Screen name="StempelHistory" component={StempelHistory} options={{title:'Stempelzeiten'}}/>
     </Drawer.Navigator>
   );
 }

@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-    ActivityIndicator,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Linking,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { Icon } from 'react-native-elements';
+import { MapPinIcon } from 'react-native-heroicons/outline';
 import { useSelector } from 'react-redux';
-import MesstechnikAPI from '../API/MesstechnikAPI';
+import MesstechnikAPI from '../components/API/MesstechnikAPI';
 import ApartmentPreview from '../components/menus/ApartmentPreview';
 import ObjectInfo from '../components/menus/ObjectPreview';
 
@@ -205,6 +206,13 @@ const Today = () => {
     setFilteredApartments(filteredApartments || []);
   };
 
+  const openGoogleMaps = (street, city, postcode) => {
+    const addressParts = [street, postcode, city].filter(Boolean);
+    const address = encodeURIComponent(addressParts.join(' '));
+    const url = `https://www.google.com/maps/search/?api=1&query=${address}`;
+    Linking.openURL(url).catch((err) => console.error('Failed to open Google Maps', err));
+  };
+
   return (
     <View style={{ flex: 1, padding: 16, backgroundColor: 'white' }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
@@ -222,7 +230,7 @@ const Today = () => {
           <Text style={{ color: '#0EA5E9', fontWeight: 'bold' }}>Jetzt</Text>
         </TouchableOpacity> */}
       </View>
-      <TextInput
+{/*       <TextInput
         placeholder="Suche nach Vor- und Nachname"
         value={searchQuery}
         onChangeText={handleSearch}
@@ -236,7 +244,7 @@ const Today = () => {
           backgroundColor: '#FFFFFF',
           fontSize: 16,
         }}
-      />
+      /> */}
       {filteredObjectNumbers.length > 0 ? (
         <ScrollView
           ref={scrollViewRef}
@@ -262,7 +270,7 @@ const Today = () => {
                 itemHeights.current[index] = height;
               }}
             >
-              <TouchableOpacity onPress={() => showApartmentInfoOnPress(obj[0].objectNumber)}>
+              <View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <Icon name="home" size={24} color="#0EA5E9" />
@@ -280,7 +288,25 @@ const Today = () => {
                   City={obj[0].objSOs}
                   PostNumber={obj[0].objSPl}
                 />
-              </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => openGoogleMaps(obj[0].objSSt, obj[0].objSOs, obj[0].objSPl)}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: '#0EA5E9',
+                    padding: 12,
+                    borderRadius: 8,
+                    marginTop: 12,
+                  }}
+                >
+                  <MapPinIcon size={20} color="white" />
+                  <Text style={{ color: 'white', fontWeight: 'bold', marginLeft: 8 }}>
+                    Navigation öffnen
+                  </Text>
+                </TouchableOpacity>
+              </View>
               {selectedObjectNumber === obj[0].objectNumber &&
                 apartmentsByObject[obj[0].objectNumber] && (
                   <>

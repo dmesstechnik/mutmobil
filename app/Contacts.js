@@ -1,11 +1,10 @@
 import { MaterialIcons } from '@expo/vector-icons'; // Import Material Icons for user icon
 import { useNavigation } from '@react-navigation/native'; // Import useNavigation hook
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, ImageBackground, Linking, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, Linking, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import MesstechnikAPI from '../API/MesstechnikAPI'; // Adjust import path as needed
+import MesstechnikAPI from '../components/API/MesstechnikAPI'; // Adjust import path as needed
 import ProfilPhoto from '../components/ProfilePhotoItem';
-import photo from '../photo.jpg';
 const Contacts = () => {
   const [contacts, setContacts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -109,13 +108,13 @@ const Contacts = () => {
               <Text style={styles.contactPhone}>{item.username}</Text>
             </View>
             <TouchableOpacity onPress={() => item.phoneNumber ? handlePhonePress(item.phoneNumber) : null}style={styles.iconButton}disabled={!item.phoneNumber}>
-            <MaterialIcons name="phone"size={30}color={item.phoneNumber ? "#6082B6" : "#B0B0B0"} />
+            <MaterialIcons name="phone"size={24}color={item.phoneNumber ? "#0EA5E9" : "#D1D5DB"} />
 </TouchableOpacity>
             <TouchableOpacity
               onPress={() => handleEmailPress(item.email)}
               style={styles.iconButton}
             >
-              <MaterialIcons name="email" size={30} color={item.email  ? "#6082B6" : "#B0B0B0"} />
+              <MaterialIcons name="email" size={24} color={item.email  ? "#0EA5E9" : "#D1D5DB"} />
             </TouchableOpacity>
           </View>
         </TouchableOpacity> 
@@ -157,7 +156,6 @@ const Contacts = () => {
   );
 
   return (
-    <ImageBackground source={photo} style={styles.backgroundImage}>
       <View style={styles.container}>
         {/* Back Button */}
         {/* <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -180,7 +178,7 @@ const Contacts = () => {
           renderItem={renderItem}
         />
       </View>
-    </ImageBackground>
+
   );
 };
 
@@ -192,10 +190,8 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 8,
-
+    padding: 16,
+    backgroundColor: '#F9FAFB',
   },
   backButton: {
     flexDirection: 'row',
@@ -209,17 +205,18 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   searchInput: {
-    padding: 10,
+    padding: 12,
     backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    marginBottom: 16,
     borderRadius: 8,
+    fontSize: 14,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   contactButton: {
     borderRadius: 8,
@@ -228,40 +225,43 @@ const styles = StyleSheet.create({
   contactItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+    borderBottomColor: '#E5E7EB',
     backgroundColor: '#fff',
     borderRadius: 8,
-    marginBottom: 12,
+    marginBottom: 8,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   contactItemSelected: {
-    backgroundColor: '#e0f7fa', // Light background color for selected item
+    backgroundColor: '#EFF6FF',
+    borderLeftWidth: 3,
+    borderLeftColor: '#0EA5E9',
   },
   contactIcon: {
-    marginRight: 12,
+    marginRight: 10,
   },
   contactInfo: {
     flex: 1,
   },
   contactName: {
-    fontSize: 17,
-    fontWeight: '400',
-    color: '#6082B6',
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 2,
   },
   contactPhone: {
-    fontSize: 15,
-    color: '#888',
+    fontSize: 13,
+    color: '#6B7280',
   },
   iconButton: {
-    padding: 8,
-    marginHorizontal: 5,
+    padding: 6,
+    marginHorizontal: 3,
   },
   missingIcon: {
     padding: 8,
@@ -271,38 +271,36 @@ const styles = StyleSheet.create({
   },
   contactDetail: {
     padding: 12,
-    backgroundColor: '#e0f7fa',
+    backgroundColor: '#EFF6FF',
     borderRadius: 8,
-    marginTop: 4,
-    marginLeft: 8,
-    marginRight: 8,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 1,
+    marginTop: -4,
+    marginLeft: 0,
+    marginRight: 0,
+    marginBottom: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: '#0EA5E9',
   },
   contactDetailName: {
-    fontSize: 18,
-    fontWeight: '400',
-    marginBottom: 5,
-    color: '#6082B6',
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 6,
+    color: '#0EA5E9',
   },
   contactDetailPhone: {
-    fontSize: 16,
-    color: '#555',
-    marginBottom: 5,
+    fontSize: 13,
+    color: '#4B5563',
+    marginBottom: 4,
   },
   contactDetailEmail: {
-    fontSize: 16,
-    color: '#555',
+    fontSize: 13,
+    color: '#4B5563',
+    marginBottom: 2,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f2f4f7',
+    backgroundColor: '#F9FAFB',
   },
 });
 
