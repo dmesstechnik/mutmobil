@@ -187,7 +187,7 @@ const LoginScreen = () => {
       console.log('Auto-login: Form filled, triggering login...');
       checkInternetAndExecute();
     }
-  }, [isAutoLogin, email, password]);
+  }, [isAutoLogin]);
 
   // ----------------- Network & Login -----------------
   const checkInternet = async () => {
@@ -285,13 +285,14 @@ const LoginScreen = () => {
           <ActivityIndicator size="large" color="#6082B6" />
         ) : (
           <>
-            <TextInput
-              style={styles.nameInput}
-              placeholder="Email"
-              placeholderTextColor="#aaa"
-              value={email}
-              onChangeText={setEmail}
-            />
+          <TextInput
+  style={styles.nameInput}
+  placeholder="Email"
+  placeholderTextColor="#aaa"
+  value={email}
+  onChangeText={(text) => setEmail(text.toUpperCase())} // <-- force uppercase
+/>
+
             <TextInput
               style={styles.nameInput}
               placeholder="Passwort"

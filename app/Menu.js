@@ -11,7 +11,7 @@ import LoginScreen from './login';
 import ProfileScreen from './Profil'; // or './Profile' if that's the filename
 import QRCodeScreen from './QRCode';
 import StemplApp from './Stempel';
-import StempelHistory from './StempelHistory'; // Add this if you have it
+
 import { store } from './store';
 import Today from './Today';
 import Vacation from './Vacation';
@@ -21,7 +21,6 @@ const LeftDrawerFunction = (props) => {
 };
 
 const Drawer = createDrawerNavigator();
-
 function MenuNavigator({ route, navigation }) {
   return (
     <Drawer.Navigator initialRouteName="MainMenu" drawerContent={LeftDrawerFunction}>
@@ -36,7 +35,7 @@ function MenuNavigator({ route, navigation }) {
       <Drawer.Screen name="Login" component={LoginScreen} options={{title:'Login'}}/>
       <Drawer.Screen name="Today" component={Today} options={{title:'Heute'}}/>
       <Drawer.Screen name="Profile" component={ProfileScreen} options={{title:'Profil'}}/>
-      <Drawer.Screen name="StempelHistory" component={StempelHistory} options={{title:'Stempelzeiten'}}/>
+      <Drawer.Screen name="StempelHistory" component={StempelHis} options={{title:'Stempelzeiten'}}/>
     </Drawer.Navigator>
   );
 }

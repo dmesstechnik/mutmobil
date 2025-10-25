@@ -114,10 +114,10 @@ const ErrorMessageApp = ({ route }) => {
                     ))
                 )}
             </ScrollView>
-            <View className="bg-white flex justify-center h-auto py-4 px-4 shadow-lg">
+            <View className="bg-white flex justify-center h-auto py-4 px-4">
                 <View className="px-4 flex-row space-x-4">
                     <InformationCircleIcon color={"#0EA5E9"}/>
-            <Text className="text-2xs">Hier kannst du Fehler melden und Verbesserungen vorschlagen.</Text>
+            <Text className="text-2xs mb-2">Hier kannst du Fehler melden und Verbesserungen vorschlagen.</Text>
             </View>
     <View className="bg-white border border-gray-200 rounded-lg p-5">
       <View className="flex-row items-center space-x-3">

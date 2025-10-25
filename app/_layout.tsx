@@ -1,9 +1,9 @@
+import '../global.css';
+import { Provider } from 'react-redux';
+import { Provider as PaperProvider } from 'react-native-paper';
+import { store } from './store';
 import { Stack } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Provider as PaperProvider } from 'react-native-paper';
-import { Provider } from 'react-redux';
-import '../global.css';
-import { store } from './store';
 
 export default function RootLayout() {
   return (

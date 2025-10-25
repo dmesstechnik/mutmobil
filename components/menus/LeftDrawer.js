@@ -8,7 +8,6 @@ import {
     MapPinIcon,
 } from 'react-native-heroicons/outline';
 import {
-    CalendarIcon,
     ChevronDownIcon,
     ChevronRightIcon,
     EnvelopeIcon,
@@ -182,12 +181,14 @@ const LeftDrawer = ({ navigation, name }) => {
                 icon={<EnvelopeIcon size={30} color="black" />}
                 navigation={navigation}
               />
+              {/* 
               <LeftDrawerItem
                 title="Anträge"
                 screen="Vacation"
                 icon={<CalendarIcon size={30} color="black" />}
                 navigation={navigation}
               />
+              */}
             </View>
           )}
         </View>

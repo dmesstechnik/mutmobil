@@ -83,4 +83,18 @@ export default class StempelAPI {
     async getTodayRecord() {
         return axios.get(this.baseAddress + "today");
     }
+
+    /** ------------------ Company Requests ------------------ **/
+async getVacationRequests() {
+  return axios.get(SERVER + "/company-request/vacation");
+}
+
+async getZaRequests() {
+  return axios.get(SERVER + "/company-request/za");
+}
+
+async createCompanyRequest(requestData) {
+  return axios.post(SERVER + "/company-request", requestData);
+}
+    
 }

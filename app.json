@@ -3,7 +3,7 @@
     "name": "MT Mobil",
     "slug": "MesstechnikMobile",
     "scheme": "mtmobil",
-    "version": "1.2.16",
+    "version": "1.1.18",
     "orientation": "portrait",
     "icon": "./assets/app_icon_or.png",
     "userInterfaceStyle": "light",

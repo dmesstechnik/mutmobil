@@ -280,10 +280,9 @@ const MainMenu = ({ route }) => {
     className="bg-white rounded-xl m-2 justify-center items-center "
     style={{ width: (screenWidth / 3) - 30, height: (screenWidth / 3) - 24 }}
     onPress={() => handleNavigation('Vacation')}
-    disabled={true}
   >
     <CalendarIcon size={40} color="#4A4A4A" />
-    <Text className="mt-2 text-sm text-gray-400 text-center" numberOfLines={1}>Anträge</Text>
+    <Text className="mt-2 text-sm text-center" numberOfLines={1}>Anträge</Text>
   </TouchableOpacity>
 
   <TouchableOpacity

@@ -23,47 +23,65 @@ const MessageItem = ({ name, surname, date, time, message, voteCount, msg }) => 
     fetchMessagesData();
   };
 
-  const changeToUeDate = (date) => {
-    let parsedDate = new Date(date);
-    let cetDate = new Date(parsedDate.toLocaleString("en-US", { timeZone: "Europe/Berlin" }));
+ const changeToUeDate = (date) => {
+  if (!date) return null;
 
-    let day = String(cetDate.getDate()).padStart(2, '0');
-    let month = String(cetDate.getMonth() + 1).padStart(2, '0');
-    let year = String(cetDate.getFullYear()).slice(-2);
+  // Split yyyy-mm-dd
+  const parts = date.split("-");
+  if (parts.length !== 3) return null;
 
-    return `${day}/${month}/${year}`;
-  };
+  const [year, month, day] = parts.map(Number);
+
+  // Validate numbers
+  if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
+
+  // Format as dd.mm.yyyy
+  const formattedDay = String(day).padStart(2, "0");
+  const formattedMonth = String(month).padStart(2, "0");
+  const formattedYear = String(year);
+
+  return `${formattedDay}.${formattedMonth}.${formattedYear}`;
+};
+
+
+  const formattedDate = changeToUeDate(date);
 
   return (
     <View className="shadow-lg rounded-lg bg-white p-5 mt-5 mx-4">
       <View className="flex-row justify-between items-center mb-4">
         <View className="flex-row items-center flex-1">
           <UserCircleIcon size={30} color="#4A4A4A" />
-          <Text className="ml-3 text-md font-semibold text-gray-800 flex-1" numberOfLines={1} ellipsizeMode="tail" style={{ color: '#0EA5E9' }}>
+          <Text
+            className="ml-3 font-semibold flex-1"
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            style={{ color: '#0EA5E9', fontSize: 13 }} // smaller for small iPhones
+          >
             {name} {surname}
           </Text>
         </View>
         <View className="flex-row items-center">
-          <View className="flex-row items-center mr-4">
-            <CalendarIcon size={20} color="#4A4A4A" />
-            <Text className="ml-1 text-gray-600">
-              {changeToUeDate(date)}
-            </Text>
-          </View>
-          <View className="flex-row items-center">
-            <ClockIcon size={20} color="#4A4A4A" />
-            <Text className="ml-1 text-gray-600">
-              {time}
-            </Text>
-          </View>
+          {formattedDate && (
+            <View className="flex-row items-center mr-4">
+              <CalendarIcon size={20} color="#4A4A4A" />
+              <Text className="ml-1 text-gray-600 text-xs">{formattedDate}</Text>
+            </View>
+          )}
+          {time && (
+            <View className="flex-row items-center">
+              <ClockIcon size={20} color="#4A4A4A" />
+              <Text className="ml-1 text-gray-600 text-xs">{time}</Text>
+            </View>
+          )}
         </View>
       </View>
-      <Text className="text-gray-700 mb-4">
-        {message}
-      </Text>
+      <Text className="text-gray-700 mb-4">{message}</Text>
       <View className="flex-row justify-end">
-        <TouchableOpacity onPress={saveNumberOfLikes} className="flex-row items-center bg-gray-100 p-2 rounded-lg">
-          <Text className="mr-2 text-gray-600 font-semibold">
+        <TouchableOpacity
+          onPress={saveNumberOfLikes}
+          className="flex-row items-center bg-gray-100 p-2 rounded-lg"
+        >
+          <Text className="mr-2 text-gray-600 font-semibold text-xs">
             {stateVoteCount} Haben auch das Problem
           </Text>
           <HandThumbUpIcon size={20} color="#4A4A4A" />

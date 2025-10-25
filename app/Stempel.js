@@ -145,6 +145,52 @@ const StemplApp = () => {
     return () => clearTimeout(initDb);
   }, []);
 
+  useEffect(() => {
+    
+   
+
+      fetchTodayRecord();
+
+
+  }, [])
+
+const fetchTodayRecord = async () => {
+  try {
+    const stempel = new StempelAPI(authToken);
+    const todayRecord = await stempel.getTodayRecord();
+    console.log("Today record:" + JSON.stringify(todayRecord.data));
+
+    if (todayRecord?.data) {
+      // Map API response to your clocks table structure
+      const timesFromServer = {
+        clockIn: todayRecord.data.clockIn,
+        startBreakfast: todayRecord.data.startBreakfast,
+        endBreakfast: todayRecord.data.endBreakfast,
+        clockOut: todayRecord.data.clockOut,
+        startBreak1: todayRecord.data.startBreak1,
+        endBreak1: todayRecord.data.endBreak1,
+        startBreak2: todayRecord.data.startBreak2,
+        endBreak2: todayRecord.data.endBreak2,
+        transfered: 1, // mark as already synced
+      };
+
+      // Use mtaDatum from server or fallback to today
+      const date = todayRecord.data.mtaDatum || new Date().toISOString().split("T")[0];
+
+      // Save to local database
+      saveClockData(timesFromServer, date, userId);
+
+      // Update state
+      setTimes(timesFromServer);
+    }
+  } catch (error) {
+    console.error("❌ Error fetching today record:", error.message);
+  }
+};
+
+   
+   
+
   const handlePress = async (key) => {
     try {
       const today = new Date().toISOString().split("T")[0];
@@ -340,11 +386,20 @@ const saveDestinationData = async () => {
     // Empty function for now - will be implemented later
   };
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await requestNewData();
+const onRefresh = async () => {
+  setRefreshing(true);
+  try {
+    await fetchTodayRecord();  // fetch from server
+    await requestNewData();    // existing placeholder
+  } catch (error) {
+    console.error("Error during refresh:", error);
+  } finally {
+    // stop the loading spinner no matter what
     setRefreshing(false);
-  };
+  }
+};
+
+
 
   return (
     <ScrollView
@@ -362,10 +417,10 @@ const saveDestinationData = async () => {
           tintColor="#3B82F6"
           titleColor="#3B82F6"
         />
-      }
+      } 
     >
       {showStatus && (
-        <View className={`flex-row items-center justify-center p-4 mb-4 rounded-lg ${statusMessage.includes('abgespeichert') ? 'bg-green-100' : 'bg-red-100'}`}>
+        <View className={`flex-row mt-2 items-center justify-center p-4 mb-4 rounded-lg ${statusMessage.includes('abgespeichert') ? 'bg-green-100' : 'bg-red-100'}`}>
           {statusMessage.includes('abgespeichert') ? (
             <CheckCircleIcon size={24} color="#10B981" />
           ) : (
